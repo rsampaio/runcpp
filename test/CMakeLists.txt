@@ -1,3 +1,4 @@
+# googletests uses pthread
 find_package(Threads REQUIRED)
 
 include(ExternalProject)

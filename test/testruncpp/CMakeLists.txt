@@ -1,4 +1,4 @@
-file(GLOB SRCS *.cc)
+file(GLOB SRCS *.cc container/*.cc)
 
 add_executable(testruncpp ${SRCS})
 
