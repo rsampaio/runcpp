@@ -22,14 +22,9 @@ int main(int argc, char *argv[]) {
     exit(0);
   }
 
-  for (auto const &arg : args) {
-    std::cout << arg.first << ": " << arg.second << "\n";
-  }
-
   if (args["start"].asBool()) {
-    runcpp::Container *container =
-        new runcpp::Container(args["<container_dir>"].asString());
-    container->Start();
+    runcpp::container::Container container(args["<container_dir>"].asString());
+    container.Start();
   }
 
   return 0;
