@@ -1,3 +1,3 @@
 #include "gtest/gtest.h"
 
-TEST(TestRunCpp, TestMain) { EXPECT_EQ(0, 1); }
+TEST(test_runcpp_main, test_main) { EXPECT_EQ(0, 1); }

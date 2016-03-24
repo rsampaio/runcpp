@@ -1,3 +1,3 @@
 #include "testcontainer.h"
 
-TEST(TestContainer, TestStart) { EXPECT_EQ(1, 0); }
+TEST(test_container, test_start) { EXPECT_EQ(1, 0); }
