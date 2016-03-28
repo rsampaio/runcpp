@@ -18,7 +18,6 @@ namespace runcpp {
       Container(std::string);
       void Start();
       void Stop();
-      void Exec(std::string cmd);
     };
   }
 }
