@@ -3,8 +3,14 @@ find_package(Threads REQUIRED)
 
 include(ExternalProject)
 
+ExternalProject_Get_Property(docopt source_dir)
+include_directories(${source_dir})
+
 ExternalProject_Get_Property(json source_dir)
 include_directories(${source_dir}/src)
+
+ExternalProject_Get_Property(easyloggingpp source_dir)
+include_directories(${source_dir})
 
 ExternalProject_Add(
   gtest

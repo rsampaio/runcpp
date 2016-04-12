@@ -1,5 +1,9 @@
 #include "runc.h"
 
+#include <easylogging++.h>
+
+INITIALIZE_EASYLOGGINGPP
+
 static const char USAGE[] = R"(runcpp.
 
   Usage:
@@ -14,6 +18,9 @@ static const char USAGE[] = R"(runcpp.
 )";
 
 int main(int argc, char *argv[]) {
+
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+
   std::map<std::string, docopt::value> args =
       docopt::docopt(USAGE, {argv + 1, argv + argc}, true, "RunCpp 0.1");
 
@@ -23,7 +30,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (args["start"].asBool()) {
-    runcpp::container::Container container(args["<container_dir>"].asString());
+    runcpp::Container container(args["<container_dir>"].asString());
     container.Start();
   }
 
