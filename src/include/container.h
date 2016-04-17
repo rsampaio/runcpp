@@ -6,39 +6,32 @@
 // execvp
 #include <unistd.h>
 
-// waitpid
-#include <sys/types.h>
-#include <sys/wait.h>
-
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+// mount
+#include <sys/mount.h>
 
 #include <easylogging++.h>
 
 #include "spec.h"
+#include "process.h"
 
 namespace runcpp {
-  class ProcessRunner {
-    Spec spec;
-    int pid;
-    void MountRootfs();
+  namespace container {
+    class Container {
+      std::string id;
+      spec::Spec spec;
 
-  public:
-    ProcessRunner(Spec);
-    void Start();
-    void Terminate();
-    void Exec();
-    int Wait();
-  };
+    private:
+      std::string const _container_path;
 
-  class Container {
-    std::string id;
-    std::string name;
-    std::string container_path;
-
-  public:
-    Container(std::string);
-    void Start();
-    void Stop();
-  };
+    public:
+      Container(std::string, spec::Spec);
+      void Start(process::Process);
+      void Destroy();
+      // Processes
+      // Stats
+      // Pause
+      // Resume
+      // Signal
+    };
+  }
 }

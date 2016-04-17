@@ -16,3 +16,5 @@ set_property(TARGET testruncpp PROPERTY CXX_STANDARD 14)
 target_link_libraries(testruncpp libgtest libgmock stdc++fs)
 
 install(TARGETS testruncpp DESTINATION bin)
+
+add_test(testruncpp testruncpp)

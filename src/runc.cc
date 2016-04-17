@@ -1,8 +1,5 @@
 #include "runc.h"
-
-#include <easylogging++.h>
-
-INITIALIZE_EASYLOGGINGPP
+#include "container.h"
 
 static const char USAGE[] = R"(runcpp.
 
@@ -30,8 +27,30 @@ int main(int argc, char *argv[]) {
   }
 
   if (args["start"].asBool()) {
-    runcpp::Container container(args["<container_dir>"].asString());
-    container.Start();
+    uuid_t uuid;
+    int exit_status;
+    std::string container_id;
+
+    uuid_generate(uuid);
+    container_id = std::string(reinterpret_cast<char *>(uuid));
+
+    // Spec
+    fs::path config_file(fs::path(args["<container_dir>"].asString()) /
+                         fs::path("config.json"));
+
+    runcpp::spec::Spec spec(config_file.string());
+
+    // Process
+    runcpp::process::Process process;
+    process.args = spec.process.args;
+    process.env = spec.process.env;
+
+    runcpp::container::Container container(container_id, spec);
+
+    container.Start(process);
+    exit_status = process.Wait();
+    container.Destroy();
+    exit(exit_status);
   }
 
   return 0;

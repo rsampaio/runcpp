@@ -34,9 +34,10 @@ include_directories(${source_dir})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(runcpp runc.cc container.cc spec.cc process.cc)
+add_dependencies(runcpp easyloggingpp json)
 
 set_property(TARGET runcpp PROPERTY CXX_STANDARD 14)
 
-target_link_libraries(runcpp libdocopt_s stdc++fs)
+target_link_libraries(runcpp libdocopt_s stdc++fs uuid)
 
 install(TARGETS runcpp DESTINATION bin)
