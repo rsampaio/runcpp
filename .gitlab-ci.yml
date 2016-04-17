@@ -1,7 +1,7 @@
-image: "ubuntu"
+image: "ubuntu:16.04"
 before_script:
   - apt-get update
-  - apt-get install cmake clang gcc curl git
+  - apt-get -y --force-yes install cmake clang gcc curl git uuid-dev
 
 stages:
   - test
@@ -10,7 +10,8 @@ job:
   stage: test
   script:
     - mkdir -p _build
-    - cd _build & cmake ../
+    - cd _build 
+    - cmake ../
     - make
     - make test
   cache:
