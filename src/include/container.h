@@ -17,15 +17,15 @@
 namespace runcpp {
   namespace container {
     class Container {
-      std::string id;
-      spec::Spec spec;
-
     private:
       std::string const _container_path;
+      spec::Spec _spec;
 
     public:
+      std::string id;
       Container(std::string, spec::Spec);
-      void Start(process::Process);
+      int Start(process::Process);
+      Container Load(std::string);
       void Destroy();
       // Processes
       // Stats
