@@ -8,7 +8,7 @@ ExternalProject_Add(
 
 add_library(libdocopt_s STATIC IMPORTED)
 ExternalProject_Get_Property(docopt binary_dir source_dir)
-set_target_properties(libdocopt_s  PROPERTIES IMPORTED_LOCATION ${binary_dir}/libdocopt_s.a)
+set_target_properties(libdocopt_s  PROPERTIES IMPORTED_LOCATION ${binary_dir}/libdocopt.a)
 add_dependencies(libdocopt_s docopt)
 include_directories(${source_dir})
 
