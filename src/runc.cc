@@ -25,9 +25,7 @@ int main(int argc, char *argv[]) {
     std::string container_id;
 
     // Read spec
-    fs::path config_file(fs::path(args["<container_dir>"].asString()) /
-                         fs::path("config.json"));
-    runcpp::spec::Spec spec(config_file.string());
+    runcpp::spec::Spec spec(args["<container_dir>"].asString());
 
     // Container
     uuid_generate(uuid);

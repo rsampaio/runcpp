@@ -3,6 +3,9 @@
 #include <string>
 #include <list>
 
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 #include "json.hpp"
 using json = nlohmann::json;
 
@@ -81,6 +84,7 @@ namespace runcpp {
       std::vector<Hook> hooks;
       std::string hostname;
       std::string oci_version;
+      std::string spec_dir;
 
       Spec(std::string);
     };

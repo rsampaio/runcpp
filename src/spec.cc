@@ -2,12 +2,15 @@
 
 namespace runcpp {
   namespace spec {
-    Spec::Spec(std::string spec_file) {
-      std::ifstream spec(spec_file);
+    Spec::Spec(std::string spec_dir) {
+      fs::path spec_file(fs::path(spec_dir) / fs::path("config.json"));
+      std::ifstream spec(spec_file.string());
       json spec_json;
 
       spec >> spec_json;
       spec.close();
+
+      this->spec_dir = spec_dir;
 
       this->oci_version = spec_json["ociVersion"];
 
