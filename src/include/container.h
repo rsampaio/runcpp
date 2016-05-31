@@ -19,6 +19,12 @@
 // setjmp/longjmp
 #include <csetjmp>
 
+// sleep
+#include <chrono>
+using namespace std::chrono_literals;
+
+#include <thread>
+
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 
@@ -36,12 +42,9 @@ namespace runcpp {
       process::Process _process;
 
       void pivot_root();
-      int clone(std::jmp_buf);
-
-      static int child_func(void *arg) {
-        std::longjmp(static_cast<std::jmp_buf *>(arg)[1], 1);
-        return 0;
-      }
+      void mount_filesystems();
+      int clone();
+      static int clone_exec(void*);
 
     public:
       std::string id;
