@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 
-// execvp
+// execvp,sethostname
 #include <unistd.h>
 
 // mount
@@ -43,8 +43,9 @@ namespace runcpp {
 
       void pivot_root();
       void mount_filesystems();
+      void set_hostname();
       int clone();
-      static int clone_exec(void*);
+      static int child_exec(void *);
 
     public:
       std::string id;
