@@ -33,9 +33,11 @@ namespace runcpp {
         LOG(ERROR) << ec.message();
       }
 
+      // set mount private recusively
       mount("", "/", "", MS_PRIVATE | MS_REC, "");
       mount(root.string().c_str(), root.string().c_str(), "", MS_BIND, "");
 
+      // create old_root
       chdir(root.string().c_str());
       mkdir("old", 0755);
 
@@ -44,6 +46,8 @@ namespace runcpp {
           ec.value() != 0) {
         perror("syscall");
       }
+
+      // change to the new root
       if (chdir("/") != 0) {
         perror("chdir");
       }
@@ -58,14 +62,52 @@ namespace runcpp {
     }
 
     void Container::mount_filesystems() {
-      LOG(INFO) << "mount_filesystems";
+      int flags = 0;
+      std::string data;
+      std::map<std::string, int> mnt_flag;
+      mnt_flag["ro"] = MS_RDONLY;
+      mnt_flag["nosuid"] = MS_NOSUID;
+      mnt_flag["nodev"] = MS_NODEV;
+      mnt_flag["noexec"] = MS_NOEXEC;
+      mnt_flag["synchronous"] = MS_SYNCHRONOUS;
+      mnt_flag["remount"] = MS_REMOUNT;
+      mnt_flag["mandlock"] = MS_MANDLOCK;
+      mnt_flag["dirsync"] = MS_DIRSYNC;
+      mnt_flag["noatime"] = MS_NOATIME;
+      mnt_flag["nodiratime"] = MS_NODIRATIME;
+      mnt_flag["bind"] = MS_BIND;
+      mnt_flag["move"] = MS_MOVE;
+      mnt_flag["rec"] = MS_REC;
+      mnt_flag["silent"] = MS_SILENT;
+      mnt_flag["posixacl"] = MS_POSIXACL;
+      mnt_flag["unbindable"] = MS_UNBINDABLE;
+      mnt_flag["private"] = MS_PRIVATE;
+      mnt_flag["slave"] = MS_SLAVE;
+      mnt_flag["shared"] = MS_SHARED;
+      mnt_flag["relatime"] = MS_RELATIME;
+      mnt_flag["kernmount"] = MS_KERNMOUNT;
+      mnt_flag["i_version"] = MS_I_VERSION;
+      mnt_flag["strictatime"] = MS_STRICTATIME;
+      mnt_flag["lazytime"] = MS_LAZYTIME;
+      mnt_flag["active"] = MS_ACTIVE;
+      mnt_flag["nouser"] = MS_NOUSER;
+
       for (auto &f : this->_spec.mounts) {
-        LOG(INFO) << f.type;
+        data = "";
         for (auto &o : f.options) {
-          LOG(INFO) << "\t" << o;
+          if (o.find("=") == std::string::npos) {
+            flags |= mnt_flag[o];
+          } else {
+            if (data != "") {
+              data += ",";
+            }
+            data += o;
+          }
         }
-        mount(f.source.c_str(), f.destination.c_str(), f.type.c_str(),
-              MS_NOSUID, "");
+
+        fs::create_directories(fs::path(f.destination));
+        mount(f.source.c_str(), f.destination.c_str(), f.type.c_str(), flags,
+              data.c_str());
       }
     }
 
