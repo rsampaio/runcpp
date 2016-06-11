@@ -4,14 +4,12 @@
 static const char USAGE[] = R"(runcpp.
 
   Usage:
-    runcpp start [-i|--interactive] [-t|--tty] <container_dir>
+    runcpp start [-b|--bundle=<bundle_dir>] [--console] [--detach] [--pid-file] [--no-subreaper] <container_id>
     runcpp stop <container_id>
-    runcpp exec [-i|--interactive] [-t|--tty] <container_id> <command>
 
   Options:
-    --version         Show version
-    -i --interactive  Exec command interactive
-    -t --tty          Create a TTY
+    -b --bundle=<bundle_dir>       Bundle directory
+    --version                      Show version
 )";
 
 int main(int argc, char *argv[]) {
@@ -19,18 +17,20 @@ int main(int argc, char *argv[]) {
       docopt::docopt(USAGE, {argv + 1, argv + argc}, true, "RunCpp 0.1");
 
   if (args["start"].asBool()) {
-    uuid_t uuid;
-    char uuid_readable[37]; // uuid size 36 + \0
     int exit_status;
     std::string container_id;
+    std::string bundle;
 
-    // Read spec
-    runcpp::spec::Spec spec(args["<container_dir>"].asString());
+    // Bundle or current dir
+    if (args["--bundle"] && args["--bundle"].isStringList()) {
+      bundle = args["--bundle"].asStringList().front();
+    } else {
+      bundle = fs::current_path().string();
+    }
+    runcpp::spec::Spec spec(bundle);
 
     // Container
-    uuid_generate(uuid);
-    uuid_unparse(uuid, uuid_readable);
-    container_id = std::string(uuid_readable);
+    container_id = args["<container_id>"].asString();
     runcpp::container::Container container(container_id, spec);
     LOG(INFO) << container.id;
 

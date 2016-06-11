@@ -18,6 +18,9 @@ namespace runcpp {
       this->root.path = spec_json["root"]["path"];
       this->root.readonly = spec_json["root"]["readonly"];
 
+      // Hostname
+      this->hostname = spec_json["hostname"];
+
       // Platform
       this->platform.os = spec_json["platform"]["os"];
       this->platform.arch = spec_json["platform"]["arch"];

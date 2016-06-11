@@ -1,7 +1,7 @@
 // -*- mode: c++ -*-
 #include <fstream>
-#include <string>
 #include <list>
+#include <string>
 
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
@@ -86,7 +86,8 @@ namespace runcpp {
       std::string oci_version;
       std::string spec_dir;
 
-      Spec(std::string);
+      // explicit single non-default parameter constructor (c++11)
+      explicit Spec(std::string);
     };
   }
 }

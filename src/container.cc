@@ -64,34 +64,32 @@ namespace runcpp {
     void Container::mount_filesystems() {
       int flags = 0;
       std::string data;
-      std::map<std::string, int> mnt_flag;
-      mnt_flag["ro"] = MS_RDONLY;
-      mnt_flag["nosuid"] = MS_NOSUID;
-      mnt_flag["nodev"] = MS_NODEV;
-      mnt_flag["noexec"] = MS_NOEXEC;
-      mnt_flag["synchronous"] = MS_SYNCHRONOUS;
-      mnt_flag["remount"] = MS_REMOUNT;
-      mnt_flag["mandlock"] = MS_MANDLOCK;
-      mnt_flag["dirsync"] = MS_DIRSYNC;
-      mnt_flag["noatime"] = MS_NOATIME;
-      mnt_flag["nodiratime"] = MS_NODIRATIME;
-      mnt_flag["bind"] = MS_BIND;
-      mnt_flag["move"] = MS_MOVE;
-      mnt_flag["rec"] = MS_REC;
-      mnt_flag["silent"] = MS_SILENT;
-      mnt_flag["posixacl"] = MS_POSIXACL;
-      mnt_flag["unbindable"] = MS_UNBINDABLE;
-      mnt_flag["private"] = MS_PRIVATE;
-      mnt_flag["slave"] = MS_SLAVE;
-      mnt_flag["shared"] = MS_SHARED;
-      mnt_flag["relatime"] = MS_RELATIME;
-      mnt_flag["kernmount"] = MS_KERNMOUNT;
-      mnt_flag["i_version"] = MS_I_VERSION;
-      mnt_flag["strictatime"] = MS_STRICTATIME;
-      mnt_flag["lazytime"] = MS_LAZYTIME;
-      mnt_flag["active"] = MS_ACTIVE;
-      mnt_flag["nouser"] = MS_NOUSER;
-
+      std::map<std::string, int> mnt_flag = {{"ro", MS_RDONLY},
+                                             {"nosuid", MS_NOSUID},
+                                             {"nodev", MS_NODEV},
+                                             {"noexec", MS_NOEXEC},
+                                             {"synchronous", MS_SYNCHRONOUS},
+                                             {"remount", MS_REMOUNT},
+                                             {"mandlock", MS_MANDLOCK},
+                                             {"dirsync", MS_DIRSYNC},
+                                             {"noatime", MS_NOATIME},
+                                             {"nodiratime", MS_NODIRATIME},
+                                             {"bind", MS_BIND},
+                                             {"move", MS_MOVE},
+                                             {"rec", MS_REC},
+                                             {"silent", MS_SILENT},
+                                             {"posixacl", MS_POSIXACL},
+                                             {"unbindable", MS_UNBINDABLE},
+                                             {"private", MS_PRIVATE},
+                                             {"slave", MS_SLAVE},
+                                             {"shared", MS_SHARED},
+                                             {"relatime", MS_RELATIME},
+                                             {"kernmount", MS_KERNMOUNT},
+                                             {"i_version", MS_I_VERSION},
+                                             {"strictatime", MS_STRICTATIME},
+                                             {"lazytime", MS_LAZYTIME},
+                                             {"active", MS_ACTIVE},
+                                             {"nouser", MS_NOUSER}};
       for (auto &f : this->_spec.mounts) {
         data = "";
         for (auto &o : f.options) {
@@ -111,7 +109,9 @@ namespace runcpp {
       }
     }
 
-    void Container::set_hostname() { sethostname(this->id.c_str(), 8); }
+    void Container::set_hostname() {
+      sethostname(this->_spec.hostname.c_str(), this->_spec.hostname.size());
+    }
 
     int Container::clone() {
       char *stack;
@@ -164,7 +164,7 @@ namespace runcpp {
       // container setup
       obj->pivot_root();
       obj->mount_filesystems();
-      // obj->set_network_ns();
+      // obj->set_network_interface();
       obj->set_hostname();
 
       obj->_process.pid = execvp(c_args[0], (char **)c_args);
