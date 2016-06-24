@@ -6,6 +6,8 @@ static const char USAGE[] = R"(runcpp.
   Usage:
     runcpp start [-b|--bundle=<bundle_dir>] [--console] [--detach] [--pid-file] [--no-subreaper] <container_id>
     runcpp stop <container_id>
+    runcpp delete <container_id>
+    runcpp init
 
   Options:
     -b --bundle=<bundle_dir>       Bundle directory
@@ -15,8 +17,23 @@ static const char USAGE[] = R"(runcpp.
 int main(int argc, char *argv[]) {
   std::map<std::string, docopt::value> args =
       docopt::docopt(USAGE, {argv + 1, argv + argc}, true, "RunCpp 0.1");
+  if (args["init"].asBool()) {
+    int pipefd = 0, statefd = 0;
+    LOG(INFO) << "init";
+    if (getenv("_LIBCONTAINER_INITPIPE") != nullptr) {
+      pipefd = atoi(getenv("_LIBCONTAINER_INITPIPE"));
+    }
 
-  if (args["start"].asBool()) {
+    if (getenv("_LIBCONTAINER_STATEDIR") != nullptr) {
+      statefd = atoi(getenv("_LIBCONTAINER_STATEDIR"));
+    }
+
+    // Non-portable way of turning an fd into a stream
+    //__gnu_cxx::stdio_filebuf<char> filebuf(pipefd, std::ios::in);
+    // std::istream pipe_stream(&filebuf);
+
+    runcpp::container::Container::InitContainer(pipefd, statefd);
+  } else if (args["start"].asBool()) {
     int exit_status;
     std::string container_id;
     std::string bundle;
@@ -47,6 +64,8 @@ int main(int argc, char *argv[]) {
       container.Destroy();
       exit(exit_status);
     }
+  } else if (args["delete"].asBool()) {
+    LOG(INFO) << "deleting " << args["<container_id>"].asString();
   }
 
   return 0;
