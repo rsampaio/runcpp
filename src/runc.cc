@@ -28,10 +28,6 @@ int main(int argc, char *argv[]) {
       statefd = atoi(getenv("_LIBCONTAINER_STATEDIR"));
     }
 
-    // Non-portable way of turning an fd into a stream
-    //__gnu_cxx::stdio_filebuf<char> filebuf(pipefd, std::ios::in);
-    // std::istream pipe_stream(&filebuf);
-
     runcpp::container::Container::InitContainer(pipefd, statefd);
   } else if (args["start"].asBool()) {
     int exit_status;

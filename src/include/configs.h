@@ -1,8 +1,17 @@
 // -*- mode: c++ -*-
 #include <string>
+#include <vector>
 
 namespace runcpp {
   namespace configs {
+    // variadic-arguments c++11
+    template <typename... Args>
+    std::string string_fmt(const std::string &format, Args... args) {
+      size_t sz = std::snprintf(nullptr, 0, format.c_str(), args...) + 1;
+      std::vector<char> buf(sz);
+      std::snprintf(&buf[0], buf.size(), format.c_str(), args...);
+      return std::string(buf.begin(), buf.end());
+    }
 
     class InitConfig {
     private:

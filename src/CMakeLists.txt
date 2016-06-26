@@ -1,5 +1,6 @@
 include(ExternalProject)
 
+# Docopt
 ExternalProject_Add(
   docopt
   GIT_REPOSITORY  "https://github.com/docopt/docopt.cpp.git"
@@ -13,15 +14,17 @@ set_target_properties(docopt_s  PROPERTIES IMPORTED_LOCATION ${binary_dir}/libdo
 add_dependencies(docopt_s docopt)
 include_directories(${source_dir})
 
+# Json++
 ExternalProject_Add(
   json
-  URL "https://github.com/nlohmann/json/archive/v1.1.0.tar.gz"
+  URL "https://github.com/nlohmann/json/archive/v2.0.0.tar.gz"
   INSTALL_COMMAND ""
   BUILD_COMMAND ""
 )
 ExternalProject_Get_Property(json source_dir)
 include_directories(${source_dir}/src)
 
+# easyloggingpp
 ExternalProject_Add(
   easyloggingpp
   URL "https://github.com/easylogging/easyloggingpp/releases/download/v9.80/easyloggingpp_v9.80.tar.gz"
@@ -32,6 +35,7 @@ ExternalProject_Add(
 ExternalProject_Get_Property(easyloggingpp source_dir)
 include_directories(${source_dir})
 
+# Build  static binary
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 set(BUILD_SHARED_LIBRARIES OFF)
 set(CMAKE_EXE_LINKER_FLAGS "-static")

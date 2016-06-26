@@ -1,15 +1,6 @@
 #include "container.h"
 #include "configs.h"
 
-// variadic-arguments c++11
-template <typename... Args>
-std::string format(const std::string &format, Args... args) {
-  size_t sz = std::snprintf(nullptr, 0, format.c_str(), args...) + 1;
-  std::vector<char> buf(sz);
-  std::snprintf(&buf[0], buf.size(), format.c_str(), args...);
-  return std::string(buf.begin(), buf.end());
-}
-
 namespace runcpp {
   namespace container {
     Container::Container(std::string id, spec::Spec spec)
@@ -30,17 +21,55 @@ namespace runcpp {
     }
 
     void Container::InitContainer(int syncfd, int statefd) {
-      json init_config_json;
-      std::string buf;
+      int status, pid;
+      std::string init_config;
 
       // non-portable file descriptor to stream
       __gnu_cxx::stdio_filebuf<char> filebuf(syncfd, std::ios::in);
       std::istream pipe_stream(&filebuf);
-      std::getline(pipe_stream, buf);
 
-      // stream from the buffer to json parser
-      std::istringstream(buf) >> init_config_json;
-      LOG(INFO) << init_config_json;
+      // pipe_stream >> init_config_json;
+      std::getline(pipe_stream, init_config);
+      json init_config_json = json::parse(init_config);
+      LOG(INFO) << init_config_json["args"];
+
+      runcpp::container::Container::sync_parent(syncfd);
+
+      // convert args
+      int arg_size = init_config_json["args"].size();
+      const char **c_args = new const char *[arg_size + 1];
+      for (int i = 0; i < arg_size; i++) {
+        c_args[i] = init_config_json["args"][i].get<std::string>().c_str();
+      }
+
+      c_args[arg_size] = NULL;
+
+      // convert env
+      int env_size = init_config_json["env"].size();
+      const char **c_env = new const char *[env_size + 1];
+      for (int i = 0; i < env_size; i++) {
+        c_env[i] = init_config_json["env"][i].get<std::string>().c_str();
+      }
+
+      c_env[env_size] = NULL;
+
+      clearenv();
+      pid = execvpe(c_args[0], (char **)c_args, (char **)c_env);
+      waitpid(pid, &status, 0);
+    }
+
+    void Container::sync_parent(int syncfd) {
+      std::vector<char> buf(1);
+      int sz =
+          write(syncfd, std::to_string(runcpp::process::PROC_READY).c_str(), 1);
+      if (sz < 0) {
+        LOG(ERROR) << "fwrite from init error: " << strerror(errno);
+      }
+
+      sz = read(syncfd, &buf[0], buf.size());
+      if (sz < 0) {
+        LOG(ERROR) << "fread from init error: ", strerror(errno);
+      }
     }
 
     void Container::pivot_root() {
@@ -65,18 +94,18 @@ namespace runcpp {
       if (syscall(SYS_pivot_root, root.string().c_str(),
                   fs::canonical("old", ec).string().c_str(), NULL) != 0 &&
           ec.value() != 0) {
-        perror("syscall");
+        LOG(ERROR) << "pivot_root: " << strerror(errno);
       }
 
       // change to the new root
       if (chdir("/") != 0) {
-        perror("chdir");
+        LOG(ERROR) << "chdir: " << strerror(errno);
       }
 
       // relative old root
       mount("", "/old", "", MS_PRIVATE | MS_REC, "");
       if (umount2("/old", MNT_DETACH) != 0) {
-        perror("unmount2");
+        LOG(ERROR) << "unmount2: " << strerror(errno);
       }
 
       rmdir(old_root.c_str());
@@ -90,7 +119,7 @@ namespace runcpp {
         data = "";
         for (auto &o : f.options) {
           if (o.find("=") == std::string::npos) {
-            flags |= this->_mount_flags[o];
+            flags |= this->_mnt_flags[o];
           } else {
             if (data != "") {
               data += ",";
@@ -114,19 +143,11 @@ namespace runcpp {
       char *stack_top;
       int pid, status, flags;
 
-      // convert args
-      int arg_size = this->_process.args.size();
-      this->_c_args = new const char *[arg_size + 1];
-      for (int i = 0; i < arg_size; i++) {
-        this->_c_args[i] = this->_process.args[i].c_str();
-      }
-
-      this->_c_args[arg_size] = NULL;
-
       // child stack allocation
       stack = (char *)malloc(1024 * 1024);
       if (stack == NULL) {
-        perror("malloc");
+        LOG(ERROR) << strerror(errno);
+        exit(-1);
       }
 
       stack_top = stack + (1024 * 1024);
@@ -138,7 +159,8 @@ namespace runcpp {
       }
 
       std::vector<int> fds = this->new_pipe();
-      std::string init_pipe_env = format("_LIBCONTAINER_INITPIPE=%d", fds[1]);
+      std::string init_pipe_env =
+          runcpp::configs::string_fmt("_LIBCONTAINER_INITPIPE=%d", fds[1]);
       const char *env[] = {init_pipe_env.c_str(), NULL};
       const char *args[] = {"/proc/self/exec", "init", NULL};
       this->_init_env = (char **)env;
@@ -147,25 +169,52 @@ namespace runcpp {
       // clone syscall
       pid = ::clone(&Container::child_exec, stack_top, flags | SIGCHLD, this);
       if (pid == -1) {
-        perror("clone error");
+        LOG(ERROR) << "clone: " << strerror(errno);
+        exit(-1);
       }
 
-      std::string proc_sync("{\"ok\": true}");
-
-      // non-portable way of turning an fd into a stream
+      // non-portable way of turning a fd into a stream
       __gnu_cxx::stdio_filebuf<char> filebuf(fds[0], std::ios::out);
       std::ostream pipe_stream(&filebuf);
-      pipe_stream << std::istringstream(proc_sync).rdbuf();
-      pipe_stream << std::endl;
-      pid = waitpid(pid, &status, 0);
-      return pid;
+
+      // read init config from pipe first
+      json init_config_json;
+      init_config_json["args"] = this->_process.args;
+      init_config_json["env"] = this->_process.env;
+      LOG(INFO) << init_config_json.dump();
+      pipe_stream << init_config_json.dump() << std::endl;
+
+      // sync with child
+      this->sync_child(fds[0]);
+
+      return waitpid(pid, &status, 0);
+    }
+
+    void Container::sync_child(int fd) {
+      std::vector<char> buf(BUFSIZ);
+      int sz = read(fd, &buf[0], buf.size());
+      if (sz < 0) {
+        LOG(ERROR) << "sync read error";
+      }
+
+      if (std::stoi(std::string(buf.begin(), buf.end())) !=
+          runcpp::process::PROC_READY) {
+        LOG(ERROR) << "synchronization flag invalid: "
+                   << std::string(buf.begin(), buf.end());
+      }
+
+      sz = write(fd, std::to_string(runcpp::process::PROC_RUN).c_str(), 1);
+      if (sz < 0) {
+        LOG(ERROR) << "fwrite: " << strerror(errno);
+      }
     }
 
     std::vector<int> Container::new_pipe() {
       std::vector<int> pipe_pair;
       int pipe_fds[2];
       if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipe_fds) != 0) {
-        perror("socketpair");
+        LOG(ERROR) << "socketpair: " << strerror(errno);
+        exit(-1);
       }
       pipe_pair.push_back(pipe_fds[0]);
       pipe_pair.push_back(pipe_fds[1]);
@@ -182,7 +231,8 @@ namespace runcpp {
       obj->_process.pid = execvpe("/proc/self/exe", (char **)obj->_init_args,
                                   (char **)obj->_init_env);
       if (obj->_process.pid < 0) {
-        perror("execvp");
+        LOG(ERROR) << "execvpe: " << strerror(errno);
+        exit(-1);
       }
 
       return 0;

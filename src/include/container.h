@@ -35,10 +35,10 @@ namespace fs = std::experimental::filesystem;
 #include <easylogging++.h>
 
 // libstdc++ filebuf
-#include <ext/stdio_filebuf.h>
-
 #include "process.h"
 #include "spec.h"
+#include <cstdio>
+#include <ext/stdio_filebuf.h>
 
 namespace runcpp {
   namespace container {
@@ -54,8 +54,10 @@ namespace runcpp {
       void pivot_root();
       void mount_filesystems();
       void set_hostname();
+      void sync_child(int);
       int clone();
       static int child_exec(void *);
+      static void sync_parent(int);
       std::vector<int> new_pipe();
 
       std::map<std::string, int> _clone_flags = {{"pid", CLONE_NEWPID},
@@ -64,33 +66,32 @@ namespace runcpp {
                                                  {"ipc", CLONE_NEWIPC},
                                                  {"uts", CLONE_NEWUTS}};
 
-      std::map<std::string, int> _mount_flags = {
-          {"ro", MS_RDONLY},
-          {"nosuid", MS_NOSUID},
-          {"nodev", MS_NODEV},
-          {"noexec", MS_NOEXEC},
-          {"synchronous", MS_SYNCHRONOUS},
-          {"remount", MS_REMOUNT},
-          {"mandlock", MS_MANDLOCK},
-          {"dirsync", MS_DIRSYNC},
-          {"noatime", MS_NOATIME},
-          {"nodiratime", MS_NODIRATIME},
-          {"bind", MS_BIND},
-          {"move", MS_MOVE},
-          {"rec", MS_REC},
-          {"silent", MS_SILENT},
-          {"posixacl", MS_POSIXACL},
-          {"unbindable", MS_UNBINDABLE},
-          {"private", MS_PRIVATE},
-          {"slave", MS_SLAVE},
-          {"shared", MS_SHARED},
-          {"relatime", MS_RELATIME},
-          {"kernmount", MS_KERNMOUNT},
-          {"i_version", MS_I_VERSION},
-          {"strictatime", MS_STRICTATIME},
-          {"lazytime", MS_LAZYTIME},
-          {"active", MS_ACTIVE},
-          {"nouser", MS_NOUSER}};
+      std::map<std::string, int> _mnt_flags = {{"ro", MS_RDONLY},
+                                               {"nosuid", MS_NOSUID},
+                                               {"nodev", MS_NODEV},
+                                               {"noexec", MS_NOEXEC},
+                                               {"synchronous", MS_SYNCHRONOUS},
+                                               {"remount", MS_REMOUNT},
+                                               {"mandlock", MS_MANDLOCK},
+                                               {"dirsync", MS_DIRSYNC},
+                                               {"noatime", MS_NOATIME},
+                                               {"nodiratime", MS_NODIRATIME},
+                                               {"bind", MS_BIND},
+                                               {"move", MS_MOVE},
+                                               {"rec", MS_REC},
+                                               {"silent", MS_SILENT},
+                                               {"posixacl", MS_POSIXACL},
+                                               {"unbindable", MS_UNBINDABLE},
+                                               {"private", MS_PRIVATE},
+                                               {"slave", MS_SLAVE},
+                                               {"shared", MS_SHARED},
+                                               {"relatime", MS_RELATIME},
+                                               {"kernmount", MS_KERNMOUNT},
+                                               {"i_version", MS_I_VERSION},
+                                               {"strictatime", MS_STRICTATIME},
+                                               {"lazytime", MS_LAZYTIME},
+                                               {"active", MS_ACTIVE},
+                                               {"nouser", MS_NOUSER}};
 
     public:
       std::string id;

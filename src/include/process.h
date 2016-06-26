@@ -8,6 +8,14 @@
 
 namespace runcpp {
   namespace process {
+    enum SyncState : int {
+      PROC_READY = 0,
+      PROC_ERROR,
+      PROC_RUN,
+      PROC_HOOKS,
+      PROC_RESUME
+    };
+
     class Process {
     public:
       std::vector<std::string> args;
