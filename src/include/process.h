@@ -21,7 +21,7 @@ namespace runcpp {
       std::vector<std::string> args;
       std::vector<std::string> env;
       std::string user;
-      int stdin, stdout, stderr;
+      int _stdin, _stdout, _stderr;
       int pid;
 
       Process();
