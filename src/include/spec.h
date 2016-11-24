@@ -89,5 +89,5 @@ namespace runcpp {
       // explicit single non-default parameter constructor (c++11)
       explicit Spec(std::string);
     };
-  }
-}
+  } // namespace spec
+} // namespace runcpp

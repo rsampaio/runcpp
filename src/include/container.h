@@ -1,5 +1,6 @@
 // -*- mode: c++ -*-
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <istream>
 #include <sstream>
@@ -23,22 +24,17 @@
 #define GNU_SOURCE 1
 #include <sched.h>
 
-// sleep
-#include <chrono>
-using namespace std::chrono_literals;
-
-#include <thread>
+// spdlog
+#include <spdlog/spdlog.h>
 
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 
-#include <easylogging++.h>
-
 // libstdc++ filebuf
+#include <ext/stdio_filebuf.h>
+
 #include "process.h"
 #include "spec.h"
-#include <cstdio>
-#include <ext/stdio_filebuf.h>
 
 namespace runcpp {
   namespace container {
@@ -50,6 +46,7 @@ namespace runcpp {
       std::string const _container_path;
       spec::Spec _spec;
       process::Process _process;
+      std::shared_ptr<spdlog::logger> _logger;
 
       void pivot_root();
       void mount_filesystems();
@@ -95,6 +92,7 @@ namespace runcpp {
 
     public:
       std::string id;
+      std::string pid_file;
       Container(std::string, spec::Spec);
       int Start(process::Process);
       Container Load(std::string);
@@ -106,5 +104,5 @@ namespace runcpp {
       // Resume
       // Signal
     };
-  }
-}
+  } // namespace container
+} // namespace runcpp

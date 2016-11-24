@@ -31,5 +31,5 @@ namespace runcpp {
       // std::vector<Network> networks;
       // std::vector<Rlimits> rlimits;
     };
-  }
-}
+  } // namespace configs
+} // namespace runcpp

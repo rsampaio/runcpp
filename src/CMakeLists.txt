@@ -24,16 +24,17 @@ ExternalProject_Add(
 ExternalProject_Get_Property(json source_dir)
 include_directories(${source_dir}/src)
 
-# easyloggingpp
+# spdlog
 ExternalProject_Add(
-  easyloggingpp
-  URL "https://github.com/easylogging/easyloggingpp/releases/download/v9.80/easyloggingpp_v9.80.tar.gz"
+  spdlog
+  GIT_REPOSITORY "https://github.com/gabime/spdlog.git"
   INSTALL_COMMAND ""
   BUILD_COMMAND ""
   CONFIGURE_COMMAND ""
+  UPDATE_COMMAND ""
 )
-ExternalProject_Get_Property(easyloggingpp source_dir)
-include_directories(${source_dir})
+ExternalProject_Get_Property(spdlog source_dir)
+include_directories(${source_dir}/include)
 
 # Build  static binary
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
@@ -43,10 +44,10 @@ set(CMAKE_EXE_LINKER_FLAGS "-static")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(runcpp runc.cc container.cc spec.cc process.cc)
-add_dependencies(runcpp easyloggingpp json docopt)
+add_dependencies(runcpp spdlog json docopt)
 
 set_property(TARGET runcpp PROPERTY CXX_STANDARD 14)
 
-target_link_libraries(runcpp docopt_s stdc++fs)
+target_link_libraries(runcpp docopt_s stdc++fs pthread)
 
 install(TARGETS runcpp DESTINATION bin)

@@ -17,15 +17,17 @@ namespace runcpp {
     };
 
     class Process {
+    private:
+      int _stdin, _stdout, _stderr;
+
     public:
       std::vector<std::string> args;
       std::vector<std::string> env;
       std::string user;
-      int _stdin, _stdout, _stderr;
       int pid;
 
       Process();
       int Wait();
     };
-  }
-}
+  } // namespace process
+} // namespace runcpp
