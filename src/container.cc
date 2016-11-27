@@ -5,7 +5,7 @@ namespace runcpp {
   namespace container {
     Container::Container(std::string id, spec::Spec spec)
         : id(id), _spec(spec),
-          _logger(spdlog::stdout_logger_mt("container", true)) {}
+          _logger(spdlog::stdout_logger_mt("container")) {}
 
     int Container::Start(process::Process process) {
       this->_process = process;
@@ -24,7 +24,7 @@ namespace runcpp {
     void Container::InitContainer(int syncfd, int statefd) {
       int status, pid;
       std::vector<char> init_config(BUFSIZ);
-      auto logger = spdlog::stdout_logger_mt("init", true);
+      auto logger = spdlog::stdout_logger_mt("init");
 
       logger->info("read bootstrap data");
 
@@ -64,7 +64,7 @@ namespace runcpp {
 
     void Container::sync_parent(int syncfd) {
       std::vector<char> buf(1);
-      auto logger = spdlog::stdout_logger_mt("sync", true);
+      auto logger = spdlog::stdout_logger_mt("sync");
 
       int sz =
           write(syncfd, std::to_string(runcpp::process::PROC_READY).c_str(), 1);
@@ -171,7 +171,7 @@ namespace runcpp {
       std::string init_pipe_env =
           runcpp::configs::string_fmt("_RUNCPP_INITPIPE=%d", fds[1]);
       const char *env[] = {init_pipe_env.c_str(), NULL};
-      const char *args[] = {"/proc/self/exec", "init", NULL};
+      const char *args[] = {"/proc/self/exe", "init", NULL};
       this->_init_env = (char **)env;
       this->_init_args = (char **)args;
 

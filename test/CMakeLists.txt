@@ -9,7 +9,7 @@ include_directories(${source_dir})
 ExternalProject_Get_Property(json source_dir)
 include_directories(${source_dir}/src)
 
-ExternalProject_Get_Property(easyloggingpp source_dir)
+ExternalProject_Get_Property(spdlog source_dir)
 include_directories(${source_dir})
 
 ExternalProject_Add(
